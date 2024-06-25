@@ -21,7 +21,7 @@ def init_cell(size, n_bomb):
     while n<n_bomb:
         row,col=random.randint(0,size-1), random.randint(0,size-1)
         if cells[row][col]==0:
-            cells[row][col]==9
+            cells[row][col]=9
             n+=1
     return(cells,status_cells)
     
@@ -46,21 +46,82 @@ def draw_hidden_cells(cell_width):
         pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
         pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
 
+def gen_buttons():
+    x,y,w,h=640,20,100,30
+    buttons=[]
+    for i in range (1,5):
+        buttons.append({'name': 'Level '+str(i), 'coordinates': (x,y,w,h)})
+        y=y+h+10
+    buttons.append({'name': 'Play', 'coordinates': (x,y,w,h)})
+
+    return(buttons)
+
+def draw_buttons():
+    
+    for b in buttons[:len(buttons)]:
+        pygame.draw.rect(screen, GRAY, b['coordinates'])
+        pygame.draw.rect(screen, BLACK, b['coordinates'], 3)
+        text=font.render(b['name'], True, BLACK)
+        screen.blit(text, (b['coordinates'][0]+17,b['coordinates'][1]+3))
+    
+    if selected!=-1:
+        pygame.draw.rect(screen, PINK, buttons[selected]['coordinates'])
+        pygame.draw.rect(screen, BLACK, buttons[selected]['coordinates'], 3)
+        text=font.render(buttons[selected]['name'], True, BLACK)
+        screen.blit(text, (buttons[selected]['coordinates'][0]+17,buttons[selected]['coordinates'][1]+3))
+
+    pygame.draw.rect(screen, GRAY, buttons[-1]['coordinates'])
+    pygame.draw.rect(screen, BLACK,  buttons[-1]['coordinates'], 3)
+    text=font.render( buttons[-1]['name'], True, BLACK)
+    screen.blit(text, ( buttons[-1]['coordinates'][0]+30, buttons[-1]['coordinates'][1]+3))
+
+def show_result():
+    colors=[(0,0,255), (0,100,200), (0,150,150), (0,200,100), (0,255,0), (100,200,0), (150,150,0), (200,100,0), ]
+    pygame.draw.rect(screen, GRAY, (20,20,560,560))
+
+    for i in range (20,581,cell_width):
+        pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
+        pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
+
+    match selected:
+        case 0:
+            font = pygame.font.SysFont('arial', 80)
+            x_offset,y_offset=20,-4
+        case 1:
+            font = pygame.font.SysFont('arial', 60)
+            x_offset,y_offset=14,-4
+        case 2:
+            font = pygame.font.SysFont('arial', 40)
+            x_offset,y_offset=11,-1
+        case 3:
+            font = pygame.font.SysFont('arial', 25)
+            x_offset,y_offset=8,2
+    for row in range (size):
+        for col in range (size):
+            text=str(cells[row][col])
+            if text=='0':
+                text=''
+            text=font.render(text, True, (255,0,0))
+            screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
 
 pygame.init()
 clock=pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT), flags, vsync=1)
-pygame.display.set_caption('Campo minato')
+pygame.display.set_caption('Campo minato♥')
 font = pygame.font.SysFont('arial', 20)
 
-#56,40,20
-cell_width=40
+#28, 40, 56, 80
+#20, 14, 10, 7
+cell_width=28
 size=560//cell_width
+selected=3
 print(size)
 draw_background()
 draw_hidden_cells(cell_width)
-cells,status_cells=init_cell()
-
+cells,status_cells=init_cell(size, 10)
+buttons=gen_buttons()
+draw_buttons()
+show_result()
 
 
 
