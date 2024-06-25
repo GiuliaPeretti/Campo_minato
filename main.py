@@ -1,26 +1,50 @@
 import pygame
 from settings import *
+import random
 
 def draw_background():
     screen.fill(BACKGROUND_COLOR)
 
-def init_cell(size):
+def init_cell(size, n_bomb):
     cells=[]
-    for i in range (size):
-        temp=[]
-        for j in range(size):
-            temp.append(0)
-        cells.append(temp)
+    status_cells=[]
 
-def draw_cells(cell_width):
+    for i in range (size):
+        t1=[]
+        t2=[]
+        for j in range(size):
+            t1.append(0)
+            t2.append(0)
+        cells.append(t1)
+        status_cells.append(t2)
+    n=0
+    while n<n_bomb:
+        row,col=random.randint(0,size-1), random.randint(0,size-1)
+        if cells[row][col]==0:
+            cells[row][col]==9
+            n+=1
+    return(cells,status_cells)
+    
+def draw_hidden_cells(cell_width):
     pygame.draw.rect(screen, GRAY, (20,20,560,560))
 
-    pygame.draw.polygon(screen, DARK_GRAY, [(0+cell_width+20, 20), ((0+cell_width+20-1,20+10)])
+    x,y =20,20
+    offset=cell_width/5
+    for i in range(size):
+        x=20
+        for j in range (size):
+            pygame.draw.polygon(screen, DARK_GRAY, [(x+cell_width, y), (x+cell_width-offset,y+offset), (x+cell_width-offset,cell_width+y-offset), (x+cell_width, cell_width+y)])
+            pygame.draw.polygon(screen, DARK_GRAY, [(x, y+cell_width), (x+offset,y+cell_width-offset), (x+cell_width-offset,cell_width+y-offset), (x+cell_width, cell_width+y)])
 
+
+            pygame.draw.polygon(screen, LIGHT_GRAY, [(x, y), (x+offset,y+offset), (x+cell_width-offset,y+offset), (x+cell_width, y)])
+            pygame.draw.polygon(screen, LIGHT_GRAY, [(x, y), (x+offset,y+offset), (x+offset,cell_width+y-offset), (x, cell_width+y)])
+            x=x+cell_width
+        y=y+cell_width
     
     for i in range (20,581,cell_width):
-        pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 3)
-        pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 3)
+        pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
+        pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
 
 
 pygame.init()
@@ -29,10 +53,13 @@ screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT), flags, vsync=1)
 pygame.display.set_caption('Campo minato')
 font = pygame.font.SysFont('arial', 20)
 
-cell_width=56
-size=560//20
+#56,40,20
+cell_width=40
+size=560//cell_width
+print(size)
 draw_background()
-draw_cells(cell_width)
+draw_hidden_cells(cell_width)
+cells,status_cells=init_cell()
 
 
 
