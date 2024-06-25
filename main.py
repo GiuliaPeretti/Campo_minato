@@ -23,6 +23,27 @@ def init_cell(size, n_bomb):
         if cells[row][col]==0:
             cells[row][col]=9
             n+=1
+
+    for row in range(size):
+        for col in range(size):
+            if(cells[row][col]!=9):
+                if(row-1>=0 and col-1>=0 and cells[row-1][col-1]==9):
+                    cells[row][col]+=1
+                if(row-1>=0 and cells[row-1][col]==9):
+                    cells[row][col]+=1
+                if(row-1>=0 and col+1<size and cells[row-1][col+1]==9):
+                    cells[row][col]+=1
+                if(col-1>=0 and cells[row][col-1]==9):
+                    cells[row][col]+=1
+                if(col+1<size and cells[row][col+1]==9):
+                    cells[row][col]+=1
+                if(row+1<size and col+1<size and cells[row+1][col+1]==9):
+                    cells[row][col]+=1
+                if(row+1<size and cells[row+1][col]==9):
+                    cells[row][col]+=1
+                if(row+1<size and col-1>=0 and cells[row+1][col-1]==9):
+                    cells[row][col]+=1
+
     return(cells,status_cells)
     
 def draw_hidden_cells(cell_width):
@@ -76,7 +97,11 @@ def draw_buttons():
     screen.blit(text, ( buttons[-1]['coordinates'][0]+30, buttons[-1]['coordinates'][1]+3))
 
 def show_result():
-    colors=[(0,0,255), (0,100,200), (0,150,150), (0,200,100), (0,255,0), (100,200,0), (150,150,0), (200,100,0), ]
+    colors=[(0, 0, 200), (0, 150, 0), (150, 0, 209), (207, 100, 0), (33, 114, 145), (1, 77, 5), (191, 186, 42), (255, 0, 242)]
+    # x=0
+    # for i in colors:
+    #     pygame.draw.rect(screen, i, (x,0,20,20))
+    #     x=x+20
     pygame.draw.rect(screen, GRAY, (20,20,560,560))
 
     for i in range (20,581,cell_width):
@@ -98,11 +123,55 @@ def show_result():
             x_offset,y_offset=8,2
     for row in range (size):
         for col in range (size):
-            text=str(cells[row][col])
-            if text=='0':
+            text=cells[row][col]
+            if text==0:
                 text=''
-            text=font.render(text, True, (255,0,0))
-            screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                text=font.render(text, True, PINK)
+                screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+            elif text==9:
+                text=font.render(str(text), True, RED)
+                screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+            else:
+                print(text)
+                text=font.render(str(text), True, colors[text-1])
+                screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+
+def reveal_cell(row,col):
+    #  TODO: controllo di perdita/vincita
+    # status_cells[row][col]=1
+    pygame.draw.rect(screen, GRAY, (cell_width*row+20,cell_width*col+20,cell_width,cell_width))
+
+    for i in range (20,581,cell_width):
+        pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
+        pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
+
+    match selected:
+        case 0:
+            font = pygame.font.SysFont('arial', 80)
+            x_offset,y_offset=20,-4
+        case 1:
+            font = pygame.font.SysFont('arial', 60)
+            x_offset,y_offset=14,-4
+        case 2:
+            font = pygame.font.SysFont('arial', 40)
+            x_offset,y_offset=11,-1
+        case 3:
+            font = pygame.font.SysFont('arial', 25)
+            x_offset,y_offset=8,2
+
+    text=cells[row][col]
+    if text==0:
+        text=''
+        text=font.render(text, True, PINK)
+        screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+    elif text==9:
+        text=font.render(str(text), True, RED)
+        screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+    else:
+        print(text)
+        text=font.render(str(text), True, colors[text-1])
+        screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+
 
 pygame.init()
 clock=pygame.time.Clock()
@@ -118,10 +187,10 @@ selected=3
 print(size)
 draw_background()
 draw_hidden_cells(cell_width)
-cells,status_cells=init_cell(size, 10)
+cells,status_cells=init_cell(size, 60)
 buttons=gen_buttons()
 draw_buttons()
-show_result()
+# show_result()
 
 
 
