@@ -84,31 +84,32 @@ def show_result():
         pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
         pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
 
+    print(selected)
     match selected:
         case 0:
             font = pygame.font.SysFont('arial', 80)
-            x_offset,y_offset=20,-4
+            y_offset,x_offset=20,-4
         case 1:
             font = pygame.font.SysFont('arial', 60)
-            x_offset,y_offset=14,-4
+            y_offset,x_offset=14,-4
         case 2:
             font = pygame.font.SysFont('arial', 40)
-            x_offset,y_offset=11,-1
+            y_offset,x_offset=11,-1
         case 3:
             font = pygame.font.SysFont('arial', 25)
-            x_offset,y_offset=8,2
+            y_offset,x_offset=8,2
     for row in range (size):
         for col in range (size):
             n=cells[row][col]
             if n==0:
-                text=''
-                text=font.render(text, True, PINK)
+                text=font.render('', True, PINK)
                 # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
                 screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
-            if n==9:
-                text=font.render(str(n), True, RED)
-                # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
-                screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+            elif n==9:
+                # text=font.render(str(n), True, RED)
+                # # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                # screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+                draw_bomb(col*cell_width+20, row*cell_width+20)
             else:
                 text=font.render(str(n), True, colors[n-1])
                 # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
@@ -128,31 +129,33 @@ def reveal_cell(row,col):
         for i in range (20,581,cell_width):
             pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
             pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
-        print("select game: "+str(select_game))
         match select_game:
             case 0:
                 font = pygame.font.SysFont('arial', 80)
-                x_offset,y_offset=20,-4
+                y_offset,x_offset=20,-4
             case 1:
                 font = pygame.font.SysFont('arial', 60)
-                x_offset,y_offset=14,-4
+                y_offset,x_offset=14,-4
             case 2:
                 font = pygame.font.SysFont('arial', 40)
-                x_offset,y_offset=11,-1
+                y_offset,x_offset=11,-1
             case 3:
                 font = pygame.font.SysFont('arial', 25)
-                x_offset,y_offset=8,2
+                y_offset,x_offset=8,2
 
         n=cells[row][col]
+        print("n:" + str(n))
         if n==0:
+            print("zero")
             text=''
-            text=font.render(text, True, PINK)
+            text=font.render('', True, PINK)
             # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
             screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
-        if n==9:
-            text=font.render(str(n), True, RED)
-            # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
-            screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+        elif n==9:
+            # text=font.render('', True, RED)
+            # # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+            # screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+            draw_bomb(col*cell_width+20, row*cell_width+20)
         else:
             text=font.render(str(n), True, colors[n-1])
             # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
@@ -249,7 +252,6 @@ def start_the_game(start_row,start_col):
     cell_to_reveal=[(row,col)]
     reveal_cell(row,col)
     while len((cell_to_reveal))>0:
-        print(cell_to_reveal)
         row,col=cell_to_reveal[0]
         
         if(cells[row][col]!=9):
@@ -319,6 +321,9 @@ def end():
         text=font.render("Win", True, RED)
         screen.blit(text, ( 700, 500))
 
+def draw_bomb(x,y):
+    pygame.draw.circle(screen, (20,20,20), (x+cell_width/2, y+cell_width/2+cell_width/7), cell_width/3)
+    pygame.draw.rect(screen, (20,20,20), (x+(cell_width/8-cell_width/4), y+cell_width/4, cell_width/4, cell_width/6))
 
 
 pygame.init()
@@ -354,11 +359,12 @@ while run:
             x,y=pygame.mouse.get_pos()
             if (event.button==1):
                 if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
-                    row=y//cell_width
-                    col=x//cell_width
+                    row=(y-20)//cell_width
+                    col=(x-20)//cell_width
                     if(first_cell):
                         first_cell=False
                         start_the_game(row,col)
+                        show_result()
                     else:
                         reveal_cell(row, col)
                         win,loose=check_win()
@@ -377,8 +383,12 @@ while run:
                             elif(i==4):
                                 if(selected!=-1):
                                     select_game=selected
+                                    win=False
+                                    loose=False
                                     game_started=True
+                                    first_cell=True
                                     cell_width, size, n_bomb=get_cell_size()
+                                    draw_hidden_cells(cell_width)
                                     draw_hidden_cells(cell_width)
                                     cells,status_cells=init_cell(size)
                                     buttons=gen_buttons()
