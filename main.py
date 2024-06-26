@@ -191,9 +191,26 @@ def get_cell_size():
             return(28, 560//28, 60)
         
 def flag_cell(row,col):
-    x=col*cell_width
-    y=row*cell_width
-    pygame.draw.polygon(screen, RED, (X))
+    print(row,col)
+    x=col*cell_width+20
+    y=row*cell_width+20
+
+    match select_game:
+        case 0:
+            x,y=x+35,y+14
+            w,h=30,30
+        case 1:
+            x,y=x+24,y+10
+            w,h=20,20
+        case 2:
+            x,y=x+16,y+7
+            w,h=15,15
+        case 3:
+            x_offset,y_offset=8,2
+            w,h=20,20
+
+    pygame.draw.polygon(screen, RED, [(x,y),(x+w,y+w/2),(x,y+h)])
+    pygame.draw.rect(screen, BROWN, (x-(w/5), y, w/5, h*1.8))
 
 
 
@@ -227,6 +244,7 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             x,y=pygame.mouse.get_pos()
+            print(event.button)
             if (event.button==1):
                 if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
                     row=y//cell_width
@@ -235,42 +253,33 @@ while run:
                 else:
 
                     for i in range (len(buttons)):
-                        print("for "+str(i))
                         if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
-                            print("entra nel bottone")
                             if(i<len(buttons)-1):
-                                print("cambia selected")
                                 selected=i
                                 if(not(game_started)):
                                     select_game=selected
-                                print(selected)
                                 draw_buttons(selected)
                                 break
                             elif(i==4):
-                                print("paley")
-                                print(selected)
-                                #TODO: it dosent works
                                 if(selected!=-1):
                                     select_game=selected
-                                    print("play")
                                     game_started=True
                                     cell_width, size, n_bomb=get_cell_size()
-                                    print("cell width"+str(cell_width))
-                                    print("size "+str(size))
                                     draw_hidden_cells(cell_width)
                                     cells,status_cells=init_cell(size, n_bomb)
                                     buttons=gen_buttons()
                                     draw_buttons(selected)
                                 break
                     else:
-                        print("entra nell'ultimo")
                         selected=-1
                     draw_buttons(selected)
-        elif(event.button==3):
-            if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
-                row=y//cell_width
-                col=x//cell_width
-                flag_cell(row, col)
+            elif(event.button==3):
+                if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
+                    print(x,y)
+                    row=(y-20)//cell_width
+                    col=(x-20)//cell_width
+                    print(row,col)
+                    flag_cell(row, col)
 
 
         if (event.type == pygame.KEYDOWN):
