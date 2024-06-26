@@ -99,17 +99,21 @@ def show_result():
             x_offset,y_offset=8,2
     for row in range (size):
         for col in range (size):
-            text=cells[row][col]
-            if text==0:
+            n=cells[row][col]
+            if n==0:
                 text=''
                 text=font.render(text, True, PINK)
-                screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
-            elif text==9:
-                text=font.render(str(text), True, RED)
-                screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+            if n==9:
+                text=font.render(str(n), True, RED)
+                # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
             else:
-                text=font.render(str(text), True, colors[text-1])
-                screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                text=font.render(str(n), True, colors[n-1])
+                # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+
 
 def reveal_cell(row,col):
     #  TODO: controllo di perdita/vincita
@@ -124,7 +128,7 @@ def reveal_cell(row,col):
         for i in range (20,581,cell_width):
             pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
             pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
-
+        print("select game: "+str(select_game))
         match select_game:
             case 0:
                 font = pygame.font.SysFont('arial', 80)
@@ -139,17 +143,20 @@ def reveal_cell(row,col):
                 font = pygame.font.SysFont('arial', 25)
                 x_offset,y_offset=8,2
 
-        text=cells[row][col]
-        if text==0:
+        n=cells[row][col]
+        if n==0:
             text=''
             text=font.render(text, True, PINK)
-            screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
-        elif text==9:
-            text=font.render(str(text), True, RED)
-            screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
+            # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+            screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+        if n==9:
+            text=font.render(str(n), True, RED)
+            # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+            screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
         else:
-            text=font.render(str(text), True, colors[text-1])
-            screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
+            text=font.render(str(n), True, colors[n-1])
+            # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+            screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
     
 def get_cell_size():
     match select_game:
@@ -238,52 +245,79 @@ def start_the_game(start_row,start_col):
     fill_cell(start_row,start_col)
     row=start_row
     col=start_col
+    cell_revealed=[]
     cell_to_reveal=[(row,col)]
+    reveal_cell(row,col)
     while len((cell_to_reveal))>0:
         print(cell_to_reveal)
         row,col=cell_to_reveal[0]
         
         if(cells[row][col]!=9):
-            if(row-1>=0 and col-1>=0 and cells[row-1][col-1]!=9):
+            if(row-1>=0 and col-1>=0 and cells[row-1][col-1]!=9 and ((row-1,col-1) not in cell_revealed) ):
                 if(cells[row-1][col-1]==0):
                     cell_to_reveal.append((row-1,col-1))
                 reveal_cell(row-1,col-1)
 
-            if(row-1>=0 and cells[row-1][col]!=9):
+            if(row-1>=0 and cells[row-1][col]!=9 and ((row-1,col) not in cell_revealed)):
                 if(cells[row-1][col]==0):
                     cell_to_reveal.append((row-1,col))
                 reveal_cell(row-1,col)
 
-            if(row-1>=0 and col+1<size and cells[row-1][col+1]!=9):
+            if(row-1>=0 and col+1<size and cells[row-1][col+1]!=9 and ((row-1,col+1) not in cell_revealed)):
                 if(cells[row-1][col+1]==0):
                     cell_to_reveal.append((row-1,col+1))
                 reveal_cell(row-1,col+1)
 
-            if(col-1>=0 and cells[row][col-1]!=9):
+            if(col-1>=0 and cells[row][col-1]!=9 and ((row,col-1) not in cell_revealed)):
                 if(cells[row][col-1]==0):
                     cell_to_reveal.append((row,col-1))
                 reveal_cell(row,col-1)
 
-            if(col+1<size and cells[row][col+1]!=9):
+            if(col+1<size and cells[row][col+1]!=9 and ((row,col+1) not in cell_revealed)):
                 if(cells[row][col+1]==0):
                     cell_to_reveal.append((row,col+1))
                 reveal_cell(row,col+1)
 
-            if(row+1<size and col+1<size and cells[row+1][col+1]!=9):
+            if(row+1<size and col+1<size and cells[row+1][col+1]!=9 and ((row+1,col+1) not in cell_revealed)):
                 if(cells[row+1][col+1]==0):
                     cell_to_reveal.append((row+1,col+1))
                 reveal_cell(row+1,col+1)
 
-            if(row+1<size and cells[row+1][col]!=9):
+            if(row+1<size and cells[row+1][col]!=9 and ((row+1,col) not in cell_revealed)):
                 if(cells[row+1][col]==0):
                     cell_to_reveal.append((row+1,col))
                 reveal_cell(row+1,col)
 
-            if(row+1<size and col-1>=0 and cells[row+1][col-1]!=9):
+            if(row+1<size and col-1>=0 and cells[row+1][col-1]!=9 and ((row+1,col-1) not in cell_revealed)):
                 if(cells[row+1][col-1]==0):
                     cell_to_reveal.append((row+1,col-1))
                 reveal_cell(row+1,col-1)
         cell_to_reveal.pop(0)
+        cell_revealed.append((row,col))
+
+def check_win():
+    win=True
+    loose=False
+    for row in range (size):
+        for col in range (size):
+            if(win and cells[row][col]!=9 and status_cells[row][col]==0):
+                win=False
+            if(cells[row][col]==9 and status_cells[row][col]==1):
+                loose=True
+                win=False
+                break
+        if(loose):
+            break
+    return(win,loose)
+                
+def end():
+    show_result()
+    if(loose):
+        text=font.render("Lost", True, RED)
+        screen.blit(text, ( 700, 500))
+    else:
+        text=font.render("Win", True, RED)
+        screen.blit(text, ( 700, 500))
 
 
 
@@ -304,6 +338,8 @@ draw_buttons(-1)
 game_started=False
 select_game=-1
 first_cell=True
+loose=False
+win=False
 
 run  = True
 
@@ -325,6 +361,8 @@ while run:
                         start_the_game(row,col)
                     else:
                         reveal_cell(row, col)
+                        win,loose=check_win()
+                        print(win,loose)
 
                 else:
 
@@ -369,6 +407,16 @@ while run:
             #                 number=number*10+i
             #                 print(number)
             #                 write_in_textbar(number,selected_bar)
+    
+    if (loose and game_started):
+        print('LOST')
+        end()
+        game_started=False
+    elif(win and game_started):
+        print('WIN')
+        end()
+        game_started=False
+
     pygame.display.flip()
     clock.tick(30)
     
