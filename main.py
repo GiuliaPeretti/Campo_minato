@@ -399,7 +399,7 @@ if __name__=='__main__':
                                     break
                                 elif(i==4):
                                     if(selected!=-1):
-                                        pygame.draw.rect(screen, BACKGROUND_COLOR, (640,490,100,100))
+                                        pygame.draw.rect(screen, BACKGROUND_COLOR, (640,490,100,100))   
                                         select_game=selected
                                         win=False
                                         loose=False
