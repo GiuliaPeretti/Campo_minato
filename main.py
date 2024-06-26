@@ -139,7 +139,9 @@ def show_result():
 def reveal_cell(row,col):
     #  TODO: controllo di perdita/vincita
     # status_cells[row][col]=1
-    pygame.draw.rect(screen, GRAY, (cell_width*row+20,cell_width*col+20,cell_width,cell_width))
+    colors=[(0, 0, 200), (0, 150, 0), (150, 0, 209), (207, 100, 0), (33, 114, 145), (1, 77, 5), (191, 186, 42), (255, 0, 242)]
+
+    pygame.draw.rect(screen, GRAY, (cell_width*col+20,cell_width*row+20,cell_width,cell_width))
 
     for i in range (20,581,cell_width):
         pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
@@ -163,15 +165,25 @@ def reveal_cell(row,col):
     if text==0:
         text=''
         text=font.render(text, True, PINK)
-        screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+        screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
     elif text==9:
         text=font.render(str(text), True, RED)
-        screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+        screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
     else:
         print(text)
         text=font.render(str(text), True, colors[text-1])
-        screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+        screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
 
+def get_cell_size():
+    match selected:
+        case 0:
+            return(80)
+        case 1:
+            return(56)
+        case 2:
+            return(40)
+        case 3:
+            return(28)
 
 pygame.init()
 clock=pygame.time.Clock()
@@ -181,17 +193,12 @@ font = pygame.font.SysFont('arial', 20)
 
 #28, 40, 56, 80
 #20, 14, 10, 7
-cell_width=28
-size=560//cell_width
-selected=3
-print(size)
-draw_background()
-draw_hidden_cells(cell_width)
-cells,status_cells=init_cell(size, 60)
+cell_width=0
+size=0
+selected=-1
+
 buttons=gen_buttons()
 draw_buttons()
-# show_result()
-
 
 
 
@@ -207,29 +214,31 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             x,y=pygame.mouse.get_pos()
-            # if(x>b_set_goal[0][0] and x<=b_set_goal[0][1] and y>=b_set_goal[1][0] and y<=b_set_goal[1][1]):
-            #     print("set goal")
-            #     set_ticket_goal(number)
-            #     display_progress()
-            # elif(x>b_add_hours[0][0] and x<=b_add_hours[0][1] and y>=b_add_hours[1][0] and y<=b_add_hours[1][1]):
-            #     print("add hours")
-            #     add_hours(number)
-            #     display_progress()
-            # elif(x>b_add_ticket[0][0] and x<=b_add_ticket[0][1] and y>=b_add_ticket[1][0] and y<=b_add_ticket[1][1]):
-            #     print("add ticket")
-            #     add_ticket(number)
-            #     display_progress()
-            # elif(x>b_reset[0][0] and x<=b_reset[0][1] and y>=b_reset[1][0] and y<=b_reset[1][1]):
-            #     print("reset")
-            #     reset()
-            #     display_progress()
-            # elif(x>text_bar_area[0][0] and x<=text_bar_area[0][1] and y>=text_bar_area[1][0] and y<=text_bar_area[1][1]):
-            #     print("select text")
-            #     selected_bar=True
-            #     write_in_textbar(number,selected_bar)
-            # else:
-            #     selected_bar=False
-            #     write_in_textbar(number,selected_bar)
+            for i in range (len(buttons)):
+                if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
+                    if(i<len(buttons)-1):
+
+                        selected=i
+                        print(selected)
+                        draw_buttons()
+                        break
+                    elif(i==4):
+                        print("paley")
+                        print(selected)
+                        #TODO: it dosent works
+                        if(selected!=-1):
+                            print("play")
+                            cell_width=get_cell_size
+                            size=560//cell_width
+                            draw_hidden_cells(cell_width)
+                            cells,status_cells=init_cell(size, 60)
+                            buttons=gen_buttons()
+                            draw_buttons()
+                        break
+                else:
+                    selected=-1
+                    draw_buttons()
+
         if (event.type == pygame.KEYDOWN):
             pass
             # if(selected_bar):
