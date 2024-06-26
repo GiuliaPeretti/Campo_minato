@@ -2,10 +2,12 @@ import pygame
 from settings import *
 import random
 
+random.seed(0)
+
 def draw_background():
     screen.fill(BACKGROUND_COLOR)
 
-def init_cell(size, n_bomb):
+def init_cell(size):
     cells=[]
     status_cells=[]
 
@@ -17,32 +19,6 @@ def init_cell(size, n_bomb):
             t2.append(0)
         cells.append(t1)
         status_cells.append(t2)
-    n=0
-    while n<n_bomb:
-        row,col=random.randint(0,size-1), random.randint(0,size-1)
-        if cells[row][col]==0:
-            cells[row][col]=9
-            n+=1
-
-    for row in range(size):
-        for col in range(size):
-            if(cells[row][col]!=9):
-                if(row-1>=0 and col-1>=0 and cells[row-1][col-1]==9):
-                    cells[row][col]+=1
-                if(row-1>=0 and cells[row-1][col]==9):
-                    cells[row][col]+=1
-                if(row-1>=0 and col+1<size and cells[row-1][col+1]==9):
-                    cells[row][col]+=1
-                if(col-1>=0 and cells[row][col-1]==9):
-                    cells[row][col]+=1
-                if(col+1<size and cells[row][col+1]==9):
-                    cells[row][col]+=1
-                if(row+1<size and col+1<size and cells[row+1][col+1]==9):
-                    cells[row][col]+=1
-                if(row+1<size and cells[row+1][col]==9):
-                    cells[row][col]+=1
-                if(row+1<size and col-1>=0 and cells[row+1][col-1]==9):
-                    cells[row][col]+=1
 
     return(cells,status_cells)
     
@@ -132,53 +108,49 @@ def show_result():
                 text=font.render(str(text), True, RED)
                 screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
             else:
-                print(text)
                 text=font.render(str(text), True, colors[text-1])
                 screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
 
 def reveal_cell(row,col):
-    print(select_game)
     #  TODO: controllo di perdita/vincita
     # status_cells[row][col]=1
-    colors=[(0, 0, 200), (0, 150, 0), (150, 0, 209), (207, 100, 0), (33, 114, 145), (1, 77, 5), (191, 186, 42), (255, 0, 242)]
+    if (status_cells[row][col]==0):
+        status_cells[row][col]=1
+        #TODO: win condition
+        colors=[(0, 0, 200), (0, 150, 0), (150, 0, 209), (207, 100, 0), (33, 114, 145), (1, 77, 5), (191, 186, 42), (255, 0, 242)]
 
-    pygame.draw.rect(screen, GRAY, (cell_width*col+20,cell_width*row+20,cell_width,cell_width))
+        pygame.draw.rect(screen, GRAY, (cell_width*col+20,cell_width*row+20,cell_width,cell_width))
 
-    for i in range (20,581,cell_width):
-        pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
-        pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
+        for i in range (20,581,cell_width):
+            pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
+            pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
 
-    match select_game:
-        case 0:
-            print("livello 1")
-            font = pygame.font.SysFont('arial', 80)
-            x_offset,y_offset=20,-4
-        case 1:
-            print("livello 2")
-            font = pygame.font.SysFont('arial', 60)
-            x_offset,y_offset=14,-4
-        case 2:
-            print("livello 3")
-            font = pygame.font.SysFont('arial', 40)
-            x_offset,y_offset=11,-1
-        case 3:
-            print("livello 4")
-            font = pygame.font.SysFont('arial', 25)
-            x_offset,y_offset=8,2
+        match select_game:
+            case 0:
+                font = pygame.font.SysFont('arial', 80)
+                x_offset,y_offset=20,-4
+            case 1:
+                font = pygame.font.SysFont('arial', 60)
+                x_offset,y_offset=14,-4
+            case 2:
+                font = pygame.font.SysFont('arial', 40)
+                x_offset,y_offset=11,-1
+            case 3:
+                font = pygame.font.SysFont('arial', 25)
+                x_offset,y_offset=8,2
 
-    text=cells[row][col]
-    if text==0:
-        text=''
-        text=font.render(text, True, PINK)
-        screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
-    elif text==9:
-        text=font.render(str(text), True, RED)
-        screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
-    else:
-        print(text)
-        text=font.render(str(text), True, colors[text-1])
-        screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
-
+        text=cells[row][col]
+        if text==0:
+            text=''
+            text=font.render(text, True, PINK)
+            screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
+        elif text==9:
+            text=font.render(str(text), True, RED)
+            screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
+        else:
+            text=font.render(str(text), True, colors[text-1])
+            screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
+    
 def get_cell_size():
     match select_game:
         case 0:
@@ -191,27 +163,127 @@ def get_cell_size():
             return(28, 560//28, 60)
         
 def flag_cell(row,col):
-    print(row,col)
+    if(status_cells[row][col]==0):
+        status_cells[row][col]=2
+
+        x=col*cell_width+20
+        y=row*cell_width+20
+
+        match select_game:
+            case 0:
+                x,y=x+35,y+14
+                w,h=30,30
+            case 1:
+                x,y=x+24,y+10
+                w,h=20,20
+            case 2:
+                x,y=x+16,y+7
+                w,h=15,15
+            case 3:
+                x,y=x+11,y+5
+                w,h=10,10
+
+        pygame.draw.polygon(screen, RED, [(x,y),(x+w,y+w/2),(x,y+h)])
+        pygame.draw.rect(screen, BROWN, (x-(w/5), y, w/5, h*1.8))
+    elif(status_cells[row][col]==2):
+        status_cells[row][col]=0
+        draw_hidden_cell(row,col)
+
+def draw_hidden_cell(row,col):
     x=col*cell_width+20
     y=row*cell_width+20
+    pygame.draw.rect(screen, GRAY, (x,y,cell_width,cell_width))
 
-    match select_game:
-        case 0:
-            x,y=x+35,y+14
-            w,h=30,30
-        case 1:
-            x,y=x+24,y+10
-            w,h=20,20
-        case 2:
-            x,y=x+16,y+7
-            w,h=15,15
-        case 3:
-            x_offset,y_offset=8,2
-            w,h=20,20
+    offset=cell_width/8
 
-    pygame.draw.polygon(screen, RED, [(x,y),(x+w,y+w/2),(x,y+h)])
-    pygame.draw.rect(screen, BROWN, (x-(w/5), y, w/5, h*1.8))
+    pygame.draw.polygon(screen, DARK_GRAY, [(x+cell_width, y), (x+cell_width-offset,y+offset), (x+cell_width-offset,cell_width+y-offset), (x+cell_width, cell_width+y)])
+    pygame.draw.polygon(screen, DARK_GRAY, [(x, y+cell_width), (x+offset,y+cell_width-offset), (x+cell_width-offset,cell_width+y-offset), (x+cell_width, cell_width+y)])
 
+    pygame.draw.polygon(screen, LIGHT_GRAY, [(x, y), (x+offset,y+offset), (x+cell_width-offset,y+offset), (x+cell_width, y)])
+    pygame.draw.polygon(screen, LIGHT_GRAY, [(x, y), (x+offset,y+offset), (x+offset,cell_width+y-offset), (x, cell_width+y)])
+
+    for i in range (20,581,cell_width):
+        pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
+        pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
+
+def fill_cell(start_row,start_col):
+    n=0
+    while n<n_bomb:
+        row,col=random.randint(0,size-1), random.randint(0,size-1)
+        if cells[row][col]==0 and row!=start_row and col!=start_col:
+            cells[row][col]=9
+            n+=1
+
+    for row in range(size):
+        for col in range(size):
+            if(cells[row][col]!=9):
+                if(row-1>=0 and col-1>=0 and cells[row-1][col-1]==9):
+                    cells[row][col]+=1
+                if(row-1>=0 and cells[row-1][col]==9):
+                    cells[row][col]+=1
+                if(row-1>=0 and col+1<size and cells[row-1][col+1]==9):
+                    cells[row][col]+=1
+                if(col-1>=0 and cells[row][col-1]==9):
+                    cells[row][col]+=1
+                if(col+1<size and cells[row][col+1]==9):
+                    cells[row][col]+=1
+                if(row+1<size and col+1<size and cells[row+1][col+1]==9):
+                    cells[row][col]+=1
+                if(row+1<size and cells[row+1][col]==9):
+                    cells[row][col]+=1
+                if(row+1<size and col-1>=0 and cells[row+1][col-1]==9):
+                    cells[row][col]+=1
+
+def start_the_game(start_row,start_col):
+    fill_cell(start_row,start_col)
+    row=start_row
+    col=start_col
+    cell_to_reveal=[(row,col)]
+    while len((cell_to_reveal))>0:
+        print(cell_to_reveal)
+        row,col=cell_to_reveal[0]
+        
+        if(cells[row][col]!=9):
+            if(row-1>=0 and col-1>=0 and cells[row-1][col-1]!=9):
+                if(cells[row-1][col-1]==0):
+                    cell_to_reveal.append((row-1,col-1))
+                reveal_cell(row-1,col-1)
+
+            if(row-1>=0 and cells[row-1][col]!=9):
+                if(cells[row-1][col]==0):
+                    cell_to_reveal.append((row-1,col))
+                reveal_cell(row-1,col)
+
+            if(row-1>=0 and col+1<size and cells[row-1][col+1]!=9):
+                if(cells[row-1][col+1]==0):
+                    cell_to_reveal.append((row-1,col+1))
+                reveal_cell(row-1,col+1)
+
+            if(col-1>=0 and cells[row][col-1]!=9):
+                if(cells[row][col-1]==0):
+                    cell_to_reveal.append((row,col-1))
+                reveal_cell(row,col-1)
+
+            if(col+1<size and cells[row][col+1]!=9):
+                if(cells[row][col+1]==0):
+                    cell_to_reveal.append((row,col+1))
+                reveal_cell(row,col+1)
+
+            if(row+1<size and col+1<size and cells[row+1][col+1]!=9):
+                if(cells[row+1][col+1]==0):
+                    cell_to_reveal.append((row+1,col+1))
+                reveal_cell(row+1,col+1)
+
+            if(row+1<size and cells[row+1][col]!=9):
+                if(cells[row+1][col]==0):
+                    cell_to_reveal.append((row+1,col))
+                reveal_cell(row+1,col)
+
+            if(row+1<size and col-1>=0 and cells[row+1][col-1]!=9):
+                if(cells[row+1][col-1]==0):
+                    cell_to_reveal.append((row+1,col-1))
+                reveal_cell(row+1,col-1)
+        cell_to_reveal.pop(0)
 
 
 
@@ -231,7 +303,7 @@ buttons=gen_buttons()
 draw_buttons(-1)
 game_started=False
 select_game=-1
-
+first_cell=True
 
 run  = True
 
@@ -244,12 +316,16 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             x,y=pygame.mouse.get_pos()
-            print(event.button)
             if (event.button==1):
                 if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
                     row=y//cell_width
                     col=x//cell_width
-                    reveal_cell(row, col)
+                    if(first_cell):
+                        first_cell=False
+                        start_the_game(row,col)
+                    else:
+                        reveal_cell(row, col)
+
                 else:
 
                     for i in range (len(buttons)):
@@ -266,7 +342,7 @@ while run:
                                     game_started=True
                                     cell_width, size, n_bomb=get_cell_size()
                                     draw_hidden_cells(cell_width)
-                                    cells,status_cells=init_cell(size, n_bomb)
+                                    cells,status_cells=init_cell(size)
                                     buttons=gen_buttons()
                                     draw_buttons(selected)
                                 break
@@ -275,10 +351,8 @@ while run:
                     draw_buttons(selected)
             elif(event.button==3):
                 if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
-                    print(x,y)
                     row=(y-20)//cell_width
                     col=(x-20)//cell_width
-                    print(row,col)
                     flag_cell(row, col)
 
 
