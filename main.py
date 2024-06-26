@@ -102,9 +102,10 @@ def show_result():
         for col in range (size):
             n=cells[row][col]
             if n==0:
-                text=font.render('', True, PINK)
-                # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
-                screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+                pass
+                # text=font.render('', True, PINK)
+                # # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
+                # screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
             elif n==9:
                 # text=font.render(str(n), True, RED)
                 # # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
@@ -117,11 +118,8 @@ def show_result():
 
 
 def reveal_cell(row,col):
-    #  TODO: controllo di perdita/vincita
-    # status_cells[row][col]=1
     if (status_cells[row][col]==0):
         status_cells[row][col]=1
-        #TODO: win condition
         colors=[(0, 0, 200), (0, 150, 0), (150, 0, 209), (207, 100, 0), (33, 114, 145), (1, 77, 5), (191, 186, 42), (255, 0, 242)]
 
         pygame.draw.rect(screen, GRAY, (cell_width*col+20,cell_width*row+20,cell_width,cell_width))
@@ -146,19 +144,11 @@ def reveal_cell(row,col):
         n=cells[row][col]
         print("n:" + str(n))
         if n==0:
-            print("zero")
-            text=''
-            text=font.render('', True, PINK)
-            # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
-            screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
+            pass
         elif n==9:
-            # text=font.render('', True, RED)
-            # # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
-            # screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
             draw_bomb(col*cell_width+20, row*cell_width+20)
         else:
             text=font.render(str(n), True, colors[n-1])
-            # screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
             screen.blit(text, (col*cell_width+20+y_offset, row*cell_width+20+x_offset))
     
 def get_cell_size():
@@ -173,7 +163,10 @@ def get_cell_size():
             return(28, 560//28, 60)
         
 def flag_cell(row,col):
+    global flag_counter
     if(status_cells[row][col]==0):
+        flag_counter-=1
+        set_flag_counter()
         status_cells[row][col]=2
 
         x=col*cell_width+20
@@ -196,6 +189,8 @@ def flag_cell(row,col):
         pygame.draw.polygon(screen, RED, [(x,y),(x+w,y+w/2),(x,y+h)])
         pygame.draw.rect(screen, BROWN, (x-(w/5), y, w/5, h*1.8))
     elif(status_cells[row][col]==2):
+        flag_counter+=1
+        set_flag_counter()
         status_cells[row][col]=0
         draw_hidden_cell(row,col)
 
@@ -314,121 +309,146 @@ def check_win():
                 
 def end():
     show_result()
+    font = pygame.font.SysFont('arial', 40)
+    pygame.draw.rect(screen, BACKGROUND_COLOR, (640,490,100,100))
     if(loose):
         text=font.render("Lost", True, RED)
-        screen.blit(text, ( 700, 500))
+        screen.blit(text, (650, 500))
     else:
         text=font.render("Win", True, RED)
-        screen.blit(text, ( 700, 500))
+        screen.blit(text, (650, 500))
 
 def draw_bomb(x,y):
     pygame.draw.circle(screen, (20,20,20), (x+cell_width/2, y+cell_width/2+cell_width/7), cell_width/3)
-    pygame.draw.rect(screen, (20,20,20), (x+(cell_width/8-cell_width/4), y+cell_width/4, cell_width/4, cell_width/6))
+    pygame.draw.rect(screen, (20,20,20), (x+(3*cell_width/8), y+cell_width/4, cell_width/4, cell_width/6))
+    # pygame.draw.polygon(screen, RED, [(x+(3*cell_width/8), y+cell_width/4), (x+(3*cell_width/8)+cell_width/8, y+cell_width/6), (x+(3*cell_width/8)+(cell_width/4), y+cell_width/4)])
+    pygame.draw.polygon(screen, RED, [(x+(3*cell_width/8)-1, y+cell_width/4-1), (x+(3*cell_width/8)+cell_width/8, y+cell_width/7), (x+(3*cell_width/8)+(cell_width/4)-1, y+cell_width/4-1)])
+
+def set_flag_counter():
+    global flag_counter
+    x,y,w,h=700,220,25,25
+    pygame.draw.rect(screen, BACKGROUND_COLOR, (x-70,y-7,100,70))
+    pygame.draw.polygon(screen, RED, [(x,y),(x+w,y+w/2),(x,y+h)])
+    pygame.draw.rect(screen, BROWN, (x-(w/5), y, w/5, h*1.8))
+    font = pygame.font.SysFont('arial', 40)
+
+    text=font.render(str(flag_counter), True, GRAY)
+    if flag_counter>9:
+        screen.blit(text, (x-60,y))
+    else:
+        screen.blit(text, (x-40,y))
 
 
-pygame.init()
-clock=pygame.time.Clock()
-screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT), flags, vsync=1)
-pygame.display.set_caption('Campo minato♥')
-font = pygame.font.SysFont('arial', 20)
 
-#28, 40, 56, 80
-#20, 14, 10, 7
-cell_width=0
-size=0
-selected = -1
 
-buttons=gen_buttons()
-draw_buttons(-1)
-game_started=False
-select_game=-1
-first_cell=True
-loose=False
-win=False
+if __name__=='__main__':
 
-run  = True
+    pygame.init()
+    clock=pygame.time.Clock()
+    screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT), flags, vsync=1)
+    pygame.display.set_caption('Campo minato♥')
+    font = pygame.font.SysFont('arial', 20)
 
-number=0
+    #28, 40, 56, 80
+    #20, 14, 10, 7
+    cell_width=0
+    size=0
+    selected = -1
 
-while run:
+    buttons=gen_buttons()
+    draw_buttons(-1)
+    game_started=False
+    select_game=-1
+    first_cell=True
+    loose=False
+    win=False
+    flag_counter=0
 
-    for event in pygame.event.get():
-        if (event.type == pygame.QUIT or (event.type==pygame.KEYDOWN and event.key==pygame.K_ESCAPE)):
-            run = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            x,y=pygame.mouse.get_pos()
-            if (event.button==1):
-                if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
-                    row=(y-20)//cell_width
-                    col=(x-20)//cell_width
-                    if(first_cell):
-                        first_cell=False
-                        start_the_game(row,col)
-                        show_result()
+    run  = True
+
+    number=0
+
+    while run:
+
+        for event in pygame.event.get():
+            if (event.type == pygame.QUIT or (event.type==pygame.KEYDOWN and event.key==pygame.K_ESCAPE)):
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x,y=pygame.mouse.get_pos()
+                if (event.button==1):
+                    if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
+                        row=(y-20)//cell_width
+                        col=(x-20)//cell_width
+                        if(first_cell):
+                            first_cell=False
+                            start_the_game(row,col)
+                        else:
+                            reveal_cell(row, col)
+                            win,loose=check_win()
+                            print(win,loose)
+
                     else:
-                        reveal_cell(row, col)
-                        win,loose=check_win()
-                        print(win,loose)
 
-                else:
-
-                    for i in range (len(buttons)):
-                        if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
-                            if(i<len(buttons)-1):
-                                selected=i
-                                if(not(game_started)):
-                                    select_game=selected
-                                draw_buttons(selected)
-                                break
-                            elif(i==4):
-                                if(selected!=-1):
-                                    select_game=selected
-                                    win=False
-                                    loose=False
-                                    game_started=True
-                                    first_cell=True
-                                    cell_width, size, n_bomb=get_cell_size()
-                                    draw_hidden_cells(cell_width)
-                                    draw_hidden_cells(cell_width)
-                                    cells,status_cells=init_cell(size)
-                                    buttons=gen_buttons()
+                        for i in range (len(buttons)):
+                            if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
+                                if(i<len(buttons)-1):
+                                    selected=i
+                                    if(not(game_started)):
+                                        select_game=selected
                                     draw_buttons(selected)
-                                break
-                    else:
-                        selected=-1
-                    draw_buttons(selected)
-            elif(event.button==3):
-                if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
-                    row=(y-20)//cell_width
-                    col=(x-20)//cell_width
-                    flag_cell(row, col)
+                                    break
+                                elif(i==4):
+                                    if(selected!=-1):
+                                        pygame.draw.rect(screen, BACKGROUND_COLOR, (640,490,100,100))
+                                        select_game=selected
+                                        win=False
+                                        loose=False
+                                        game_started=True
+                                        first_cell=True
+                                        cell_width, size, n_bomb=get_cell_size()
+                                        flag_counter=n_bomb
+                                        set_flag_counter()
+                                        draw_hidden_cells(cell_width)
+                                        draw_hidden_cells(cell_width)
+                                        cells,status_cells=init_cell(size)
+                                        buttons=gen_buttons()
+                                        draw_buttons(selected)
+                                    break
+                        else:
+                            selected=-1
+                        draw_buttons(selected)
+                elif(event.button==3):
+                    if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
+                        row=(y-20)//cell_width
+                        col=(x-20)//cell_width
+                        flag_cell(row, col)
 
 
-        if (event.type == pygame.KEYDOWN):
-            pass
-            # if(selected_bar):
-            #     if (event.key==pygame.K_BACKSPACE):
-            #         number=number//10
-            #         print(number)
-            #         write_in_textbar(number,selected_bar)
-            #     else:
-            #         for i in range(len(INPUTS)):
-            #             if (event.key==INPUTS[i]):
-            #                 number=number*10+i
-            #                 print(number)
-            #                 write_in_textbar(number,selected_bar)
-    
-    if (loose and game_started):
-        print('LOST')
-        end()
-        game_started=False
-    elif(win and game_started):
-        print('WIN')
-        end()
-        game_started=False
+            if (event.type == pygame.KEYDOWN):
+                pass
+                # if(selected_bar):
+                #     if (event.key==pygame.K_BACKSPACE):
+                #         number=number//10
+                #         print(number)
+                #         write_in_textbar(number,selected_bar)
+                #     else:
+                #         for i in range(len(INPUTS)):
+                #             if (event.key==INPUTS[i]):
+                #                 number=number*10+i
+                #                 print(number)
+                #                 write_in_textbar(number,selected_bar)
+        
+        if (loose and game_started):
+            print('LOST')
+            end()
+            game_started=False
+        elif(win and game_started):
+            print('WIN')
+            end()
+            game_started=False
 
-    pygame.display.flip()
-    clock.tick(30)
-    
+        pygame.display.flip()
+        clock.tick(30)
+        
 
-pygame.quit()
+    pygame.quit()
