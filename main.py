@@ -50,7 +50,7 @@ def draw_hidden_cells(cell_width):
     pygame.draw.rect(screen, GRAY, (20,20,560,560))
 
     x,y =20,20
-    offset=cell_width/5
+    offset=cell_width/8
     for i in range(size):
         x=20
         for j in range (size):
@@ -77,7 +77,7 @@ def gen_buttons():
 
     return(buttons)
 
-def draw_buttons():
+def draw_buttons(selected):
     
     for b in buttons[:len(buttons)]:
         pygame.draw.rect(screen, GRAY, b['coordinates'])
@@ -137,6 +137,7 @@ def show_result():
                 screen.blit(text, (row*cell_width+20+x_offset, col*cell_width+20+y_offset))
 
 def reveal_cell(row,col):
+    print(select_game)
     #  TODO: controllo di perdita/vincita
     # status_cells[row][col]=1
     colors=[(0, 0, 200), (0, 150, 0), (150, 0, 209), (207, 100, 0), (33, 114, 145), (1, 77, 5), (191, 186, 42), (255, 0, 242)]
@@ -147,17 +148,21 @@ def reveal_cell(row,col):
         pygame.draw.line(screen, BACKGROUND_COLOR, (i,20),(i,580), 2)
         pygame.draw.line(screen, BACKGROUND_COLOR, (20,i),(580,i), 2)
 
-    match selected:
+    match select_game:
         case 0:
+            print("livello 1")
             font = pygame.font.SysFont('arial', 80)
             x_offset,y_offset=20,-4
         case 1:
+            print("livello 2")
             font = pygame.font.SysFont('arial', 60)
             x_offset,y_offset=14,-4
         case 2:
+            print("livello 3")
             font = pygame.font.SysFont('arial', 40)
             x_offset,y_offset=11,-1
         case 3:
+            print("livello 4")
             font = pygame.font.SysFont('arial', 25)
             x_offset,y_offset=8,2
 
@@ -175,15 +180,23 @@ def reveal_cell(row,col):
         screen.blit(text, (col*cell_width+20+x_offset, row*cell_width+20+y_offset))
 
 def get_cell_size():
-    match selected:
+    match select_game:
         case 0:
-            return(80)
+            return(80, 560//80, 10)
         case 1:
-            return(56)
+            return(56, 560//56, 20)
         case 2:
-            return(40)
+            return(40, 560//40, 40)
         case 3:
-            return(28)
+            return(28, 560//28, 60)
+        
+def flag_cell(row,col):
+    x=col*cell_width
+    y=row*cell_width
+    pygame.draw.polygon(screen, RED, (X))
+
+
+
 
 pygame.init()
 clock=pygame.time.Clock()
@@ -195,12 +208,12 @@ font = pygame.font.SysFont('arial', 20)
 #20, 14, 10, 7
 cell_width=0
 size=0
-selected=-1
+selected = -1
 
 buttons=gen_buttons()
-draw_buttons()
-
-
+draw_buttons(-1)
+game_started=False
+select_game=-1
 
 
 run  = True
@@ -214,30 +227,51 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             x,y=pygame.mouse.get_pos()
-            for i in range (len(buttons)):
-                if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
-                    if(i<len(buttons)-1):
-
-                        selected=i
-                        print(selected)
-                        draw_buttons()
-                        break
-                    elif(i==4):
-                        print("paley")
-                        print(selected)
-                        #TODO: it dosent works
-                        if(selected!=-1):
-                            print("play")
-                            cell_width=get_cell_size
-                            size=560//cell_width
-                            draw_hidden_cells(cell_width)
-                            cells,status_cells=init_cell(size, 60)
-                            buttons=gen_buttons()
-                            draw_buttons()
-                        break
+            if (event.button==1):
+                if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
+                    row=y//cell_width
+                    col=x//cell_width
+                    reveal_cell(row, col)
                 else:
-                    selected=-1
-                    draw_buttons()
+
+                    for i in range (len(buttons)):
+                        print("for "+str(i))
+                        if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
+                            print("entra nel bottone")
+                            if(i<len(buttons)-1):
+                                print("cambia selected")
+                                selected=i
+                                if(not(game_started)):
+                                    select_game=selected
+                                print(selected)
+                                draw_buttons(selected)
+                                break
+                            elif(i==4):
+                                print("paley")
+                                print(selected)
+                                #TODO: it dosent works
+                                if(selected!=-1):
+                                    select_game=selected
+                                    print("play")
+                                    game_started=True
+                                    cell_width, size, n_bomb=get_cell_size()
+                                    print("cell width"+str(cell_width))
+                                    print("size "+str(size))
+                                    draw_hidden_cells(cell_width)
+                                    cells,status_cells=init_cell(size, n_bomb)
+                                    buttons=gen_buttons()
+                                    draw_buttons(selected)
+                                break
+                    else:
+                        print("entra nell'ultimo")
+                        selected=-1
+                    draw_buttons(selected)
+        elif(event.button==3):
+            if(game_started and x>=20 and x<=560 and y>=20 and x<=560):
+                row=y//cell_width
+                col=x//cell_width
+                flag_cell(row, col)
+
 
         if (event.type == pygame.KEYDOWN):
             pass
